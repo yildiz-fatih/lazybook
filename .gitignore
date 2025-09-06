@@ -1,0 +1,7 @@
+# Python
+__pycache__/
+.venv/
+# Junk
+.DS_Store
+# Environment variable file
+backend/.env

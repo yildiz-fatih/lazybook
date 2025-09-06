@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lazybook</title>
+</head>
+
+<body>
+    <div id="hello"></div>
+
+    <script type="module">
+        const API = "http://localhost:8000";
+
+        const response = await fetch(`${API}/hello`);
+        const data = await response.json();
+        document.getElementById('hello').textContent = data.message;
+    </script>
+</body>
+
+</html>
