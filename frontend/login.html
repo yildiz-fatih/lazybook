@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>login - lazybook</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+
+<body>
+    <h1>log in</h1>
+
+    <hr>
+
+    <form id="login-form">
+        username: <input id="username-input" required><br>
+        password: <input id="password-input" type="password" required><br>
+        <input type="submit" value="login">
+
+        <hr>
+
+        <p>don't have an account? <a href="./register.html">register</a></p>
+    </form>
+
+    <script src="./common.js"></script>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username-input').value;
+            const password = document.getElementById('password-input').value;
+            const response = await fetch(`${API}/auth/login`, {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (response.status !== 200) {
+                alert('login failed');
+                return;
+            }
+
+            const { access_token } = await response.json();
+            setToken(access_token);
+            window.location.replace(`./index.html`);
+        });
+    </script>
+</body>
+
+</html>
