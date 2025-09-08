@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>profile - lazybook</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+
+<body>
+    <h1 id="name-info"></h1>
+    <p id="status-info"></p>
+
+    <!-- Only visible on your own profile -->
+    <form id="status-form" style="display:none">
+        change status: <input id="status-input">
+        <input id="submit" type="submit" value="save">
+    </form>
+    <hr>
+
+    <div id="follows-info"></div>
+
+    <hr>
+    <h3>followers</h3>
+    <div id="followers"></div>
+
+    <hr>
+    <h3>following</h3>
+    <div id="following"></div>
+
+    <script src="./common.js"></script>
+    <script>
+        const userId = new URLSearchParams(location.search).get('user_id');
+
+        async function init() {
+            if (!getToken()) {
+                window.location.replace('./login.html');
+                return;
+            }
+
+            if (!userId) { return; }
+
+            const response = await authFetch(`${API}/users/${userId}`);
+            if (response.status === 404) {
+                alert('user not found')
+                return;
+            }
+            if (!response.ok) { return; }
+
+            const profile = await response.json();
+
+            document.getElementById('status-info').textContent = profile.status || '';
+            document.getElementById('name-info').textContent = profile.username;
+
+            if (profile.relationship.is_self) {
+                // status form
+                document.getElementById('status-input').value = profile.status || '';
+                document.getElementById('status-form').style.display = "block";
+
+                document.getElementById('status-form').onsubmit = async (e) => {
+                    e.preventDefault();
+
+                    const statusValue = document.getElementById('status-input').value.trim();
+
+                    const response = await authFetch(`${API}/users/${userId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: statusValue })
+                    });
+
+                    if (!response.ok) {
+                        alert('failed to update status');
+                        return;
+                    }
+
+                    init();
+                }
+            } else {
+                // follow / unfollow
+                const followsDiv = document.getElementById('follows-info');
+                followsDiv.innerHTML = '';
+
+                if (profile.relationship.follows_me) {
+                    const p = document.createElement('p');
+                    p.textContent = 'follows you';
+                    followsDiv.appendChild(p);
+                }
+
+                const followButton = document.createElement('button');
+                followButton.textContent = profile.relationship.i_follow ? 'unfollow' : 'follow';
+                followButton.addEventListener("click", async () => {
+                    const options = {
+                        method: profile.relationship.i_follow ? "DELETE" : "POST",
+                    };
+
+                    const response = await authFetch(`${API}/users/${userId}/follow`, options);
+                    if (!response.ok) {
+                        alert('follow action failed');
+                        return;
+                    }
+
+                    init();
+                });
+                followsDiv.appendChild(followButton);
+            }
+
+            // followers / following
+            const types = ["followers", "following"];
+
+            for (const type of types) {
+                const followsDiv = document.getElementById(type);
+                followsDiv.innerHTML = '';
+
+                const response = await authFetch(`${API}/users/${userId}/${type}`);
+                if (!response.ok) {
+                    alert(`failed to load ${type}`);
+                    continue;
+                }
+
+                const users = await response.json();
+                for (const user of users) {
+                    const a = document.createElement('a');
+                    a.href = `./profile.html?user_id=${user.id}`;
+                    a.textContent = user.username;
+                    followsDiv.appendChild(a);
+                }
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
