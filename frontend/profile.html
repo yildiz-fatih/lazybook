@@ -29,6 +29,19 @@
     <h3>following</h3>
     <div id="following"></div>
 
+    <hr>
+    <h3>posts</h3>
+    <!-- Only visible on your own profile -->
+    <form id="post-form" style="display:none">
+        <textarea id="post-contents" maxlength="1024" placeholder="say something..."
+            style="width:50%;height:75px;"></textarea><br>
+        <button id="post-submit" type="submit">post</button>
+    </form>
+
+    <br>
+
+    <div id="user-posts"></div>
+
     <script src="./common.js"></script>
     <script>
         const userId = new URLSearchParams(location.search).get('user_id');
@@ -41,14 +54,14 @@
 
             if (!userId) { return; }
 
-            const response = await authFetch(`${API}/users/${userId}`);
-            if (response.status === 404) {
+            const profileResponse = await authFetch(`${API}/users/${userId}`);
+            if (profileResponse.status === 404) {
                 alert('user not found')
                 return;
             }
-            if (!response.ok) { return; }
+            if (!profileResponse.ok) { return; }
 
-            const profile = await response.json();
+            const profile = await profileResponse.json();
 
             document.getElementById('status-info').textContent = profile.status || '';
             document.getElementById('name-info').textContent = profile.username;
@@ -57,20 +70,40 @@
                 // status form
                 document.getElementById('status-input').value = profile.status || '';
                 document.getElementById('status-form').style.display = "block";
+                document.getElementById('post-form').style.display = "";
 
                 document.getElementById('status-form').onsubmit = async (e) => {
                     e.preventDefault();
 
                     const statusValue = document.getElementById('status-input').value.trim();
 
-                    const response = await authFetch(`${API}/users/${userId}`, {
+                    const updateStatusResponse = await authFetch(`${API}/users/${userId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ status: statusValue })
                     });
 
-                    if (!response.ok) {
+                    if (!updateStatusResponse.ok) {
                         alert('failed to update status');
+                        return;
+                    }
+
+                    init();
+                }
+
+                document.getElementById('post-form').onsubmit = async (e) => {
+                    e.preventDefault();
+
+                    const contents = document.getElementById('post-contents').value.trim();
+                    if (!contents) { return; }
+
+                    const createPostResponse = await authFetch(`${API}/posts`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents })
+                    });
+                    if (!createPostResponse.ok) {
+                        alert('failed to create post');
                         return;
                     }
 
@@ -94,8 +127,8 @@
                         method: profile.relationship.i_follow ? "DELETE" : "POST",
                     };
 
-                    const response = await authFetch(`${API}/users/${userId}/follow`, options);
-                    if (!response.ok) {
+                    const followToggleResponse = await authFetch(`${API}/users/${userId}/follow`, options);
+                    if (!followToggleResponse.ok) {
                         alert('follow action failed');
                         return;
                     }
@@ -112,13 +145,13 @@
                 const followsDiv = document.getElementById(type);
                 followsDiv.innerHTML = '';
 
-                const response = await authFetch(`${API}/users/${userId}/${type}`);
-                if (!response.ok) {
+                const usersListResponse = await authFetch(`${API}/users/${userId}/${type}`);
+                if (!usersListResponse.ok) {
                     alert(`failed to load ${type}`);
                     continue;
                 }
 
-                const users = await response.json();
+                const users = await usersListResponse.json();
                 for (const user of users) {
                     const a = document.createElement('a');
                     a.href = `./profile.html?user_id=${user.id}`;
@@ -126,6 +159,15 @@
                     followsDiv.appendChild(a);
                 }
             }
+
+            // posts
+            const postsResponse = await authFetch(`${API}/users/${userId}/posts`);
+            if (!postsResponse.ok) { return; }
+            const posts = await postsResponse.json();
+
+            const postsDiv = document.getElementById('user-posts');
+            postsDiv.innerHTML = '';
+            for (const post of posts) { postsDiv.appendChild(renderPost(post)); }
         }
 
         init();

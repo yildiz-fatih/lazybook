@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from sqlalchemy import select, text
+from sqlalchemy import desc, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from .auth import (
     generate_access_token,
@@ -12,7 +12,7 @@ from .auth import (
     verify_password,
 )
 from .database import engine, get_db
-from .models import Base, Follow, User
+from .models import Base, Follow, Post, User
 
 
 # ===== App startup and configs =====
@@ -360,4 +360,88 @@ async def get_following(
     return [
         UserOut(id=user.id, username=user.username, status=user.status)
         for user in users
+    ]
+
+
+class PostCreateIn(BaseModel):
+    contents: str
+
+
+class PostOut(BaseModel):
+    id: int
+    user_id: int
+    username: str
+    contents: str
+    created_at: str
+
+
+@app.post("/posts", status_code=201)
+async def create_post(
+    payload: PostCreateIn,
+    db: AsyncSession = Depends(get_db),
+    me: User = Depends(get_current_user),
+):
+    post = Post(user_id=me.id, contents=payload.contents.strip())
+    db.add(post)
+    await db.commit()
+    await db.refresh(post)
+
+    return PostOut(
+        id=post.id,
+        user_id=post.user_id,
+        username=me.username,
+        contents=post.contents,
+        created_at=post.created_at.isoformat(),
+    )
+
+
+@app.get("/users/{user_id}/posts")
+async def get_users_posts(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    me: User = Depends(get_current_user),
+):
+    result = await db.execute(
+        select(Post, User.username)
+        .join(User, User.id == Post.user_id)
+        .where(Post.user_id == user_id)
+        .order_by(desc(Post.created_at))
+    )
+    posts = result.all()
+
+    return [
+        PostOut(
+            id=post.id,
+            user_id=post.user_id,
+            username=username,
+            contents=post.contents,
+            created_at=post.created_at.isoformat(),
+        )
+        for (post, username) in posts
+    ]
+
+
+@app.get("/feed")
+async def get_feed(
+    db: AsyncSession = Depends(get_db), me: User = Depends(get_current_user)
+):
+    result = await db.execute(
+        select(Post, User.username)
+        .join(User, User.id == Post.user_id)
+        .join(Follow, Follow.followee_id == Post.user_id)
+        .where(Follow.follower_id == me.id)
+        .order_by(desc(Post.created_at))
+    )
+
+    rows = result.all()
+
+    return [
+        PostOut(
+            id=p.id,
+            user_id=p.user_id,
+            username=username,
+            contents=p.contents,
+            created_at=p.created_at.isoformat(),
+        )
+        for (p, username) in rows
     ]

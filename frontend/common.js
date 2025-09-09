@@ -23,3 +23,32 @@ async function authFetch(url, options = {}) {
     }
     return response;
 }
+
+// Pretty-print a single post
+function renderPost(post) {
+    const postContainer = document.createElement('div');
+
+    const postHeader = document.createElement('div');
+
+    const usernameLink = document.createElement('a');
+    usernameLink.href = `./profile.html?user_id=${post.user_id}`;
+    usernameLink.textContent = post.username;
+    postHeader.appendChild(usernameLink);
+
+    const timestampElement = document.createElement('small');
+    const formattedDate = new Date(post.created_at).toLocaleString();
+    timestampElement.textContent = ` ${formattedDate}`;
+    postHeader.appendChild(timestampElement);
+
+    const postContent = document.createElement('p');
+    postContent.style.wordBreak = 'break-word';
+    postContent.textContent = post.contents || '';
+    postHeader.appendChild(postContent);
+
+    postContainer.appendChild(postHeader);
+
+    const separator = document.createElement('hr');
+    postContainer.appendChild(separator);
+
+    return postContainer;
+}
