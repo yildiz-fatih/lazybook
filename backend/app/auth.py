@@ -2,7 +2,7 @@ import os
 import time
 import bcrypt
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, WebSocketException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from .database import get_db
@@ -68,5 +68,24 @@ async def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="user not found"
         )
+
+    return user
+
+
+# Returns the authenticated user --- Used by WebSockets endpoints
+async def get_current_user_ws(
+    token: str, db: AsyncSession
+) -> (
+    User
+):  # since this function is not a FastAPI dependency, 'db' is passed by the client of the function
+    try:
+        data = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        user_id = int(data.get("sub"))
+    except jwt.InvalidTokenError:
+        raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
+
+    user = await db.get(User, user_id)
+    if not user:
+        raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
 
     return user

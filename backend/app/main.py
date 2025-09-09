@@ -1,18 +1,28 @@
 import os
 from contextlib import asynccontextmanager
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import (
+    Depends,
+    FastAPI,
+    HTTPException,
+    Query,
+    WebSocket,
+    WebSocketDisconnect,
+    WebSocketException,
+    status,
+)
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import desc, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from .auth import (
     generate_access_token,
     get_current_user,
+    get_current_user_ws,
     hash_password,
     verify_password,
 )
-from .database import engine, get_db
-from .models import Base, Follow, Post, User
+from .database import AsyncSessionLocal, engine, get_db
+from .models import Base, Follow, Post, User, Message
 
 
 # ===== App startup and configs =====
@@ -444,4 +454,173 @@ async def get_feed(
             created_at=p.created_at.isoformat(),
         )
         for (p, username) in rows
+    ]
+
+
+# Chat stuff
+class MessageIn(BaseModel):
+    recipient_id: int
+    contents: str
+
+
+class MessageOut(BaseModel):
+    id: int
+    sender_id: int
+    recipient_id: int
+    contents: str
+    created_at: str
+
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: dict[int, set[WebSocket]] = {}
+
+    async def connect(self, user_id: int, websocket: WebSocket):
+        await websocket.accept()
+
+        if user_id not in self.active_connections:
+            self.active_connections[user_id] = set()
+        self.active_connections[user_id].add(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        # Scan through all users, remove this websocket wherever it appears
+        # Keep track of emptied out entries, remove them to keep the dict tidy
+        user_id_to_remove = None
+        for user_id, connections in self.active_connections.items():
+            if websocket in connections:
+                connections.discard(websocket)
+                if not connections:
+                    user_id_to_remove = user_id
+                break  # each ws belongs to exactly one user set
+
+        if user_id_to_remove is not None:
+            self.active_connections.pop(user_id_to_remove)
+
+
+connection_manager = ConnectionManager()
+
+"""
+Fix later:
+    - Long-lived connections will not be forced to re-auth mid-connection
+"""
+
+
+@app.websocket("/chatting")
+async def chat(websocket: WebSocket, token: str = Query(...)):
+    # Ensure only WebSockets coming from the expected origins are allowed
+    if websocket.headers.get("origin") != FRONTEND_ORIGIN:
+        raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
+    # Authenticate the user using the JWT passed as query params
+    async with AsyncSessionLocal() as db:
+        me = await get_current_user_ws(token, db)
+    # Accept and 'register' the user
+    await connection_manager.connect(me.id, websocket)
+
+    try:
+        while True:
+            # Parse JSON
+            try:
+                data = await websocket.receive_json()
+            except Exception:
+                await websocket.send_json({"type": "error", "code": "bad_json"})
+                continue
+
+            # Validate payload shape
+            try:
+                incoming = MessageIn.model_validate(data)
+            except ValidationError:
+                await websocket.send_json({"type": "error", "code": "validation_error"})
+                continue
+
+            # Persist message (short-lived async session per message)
+            async with AsyncSessionLocal() as db:
+                recipient = await db.get(User, incoming.recipient_id)
+                if not recipient:
+                    await websocket.send_json(
+                        {"type": "error", "code": "recipient_not_found"}
+                    )
+                    continue
+
+                message = Message(
+                    sender_id=me.id,
+                    recipient_id=incoming.recipient_id,
+                    contents=incoming.contents,
+                )
+                db.add(message)
+
+                try:
+                    await db.commit()
+                except Exception:
+                    await db.rollback()
+                    await websocket.send_json({"type": "error", "code": "db_error"})
+                    continue
+
+                await db.refresh(message)
+
+            outgoing = {
+                "sender_id": me.id,
+                "contents": message.contents,
+                "created_at": message.created_at.isoformat(),
+            }
+            # NOTE: Why do we catch per-recipient send errors and prune sockets here?
+            #   This block writes to other users’ sockets.
+            #   If a recipient socket is stale/closed, ws.send_json(...) raises.
+            #   There’s nobody to notify on that dead socket, and if we let
+            #   the exception escape this try/except, it would propagate out of our handler and close
+            #   the sender’s WebSocket --> disconnecting them even though only the recipient was at fault.
+            #   This solution tries to prevent repeated failures and leaking dead connections, while keeping the sender connected.
+            targets = connection_manager.active_connections.get(incoming.recipient_id)
+            if targets:
+                stale = []
+                for ws in list(targets):
+                    try:
+                        await ws.send_json(outgoing)
+                    except Exception:
+                        stale.append(
+                            ws
+                        )  # websocket is stale/closed, mark it for removal
+                for ws in stale:
+                    connection_manager.disconnect(ws)
+
+    except WebSocketDisconnect:
+        connection_manager.disconnect(websocket)
+
+
+@app.get("/messages", response_model=list[MessageOut], status_code=200)
+async def get_messages(
+    peer_id: int = Query(...),
+    db: AsyncSession = Depends(get_db),
+    me: User = Depends(get_current_user),
+):
+    # verify peer exists
+    peer_result = await db.execute(
+        text("SELECT id FROM users WHERE id = :peer_id"),
+        {"peer_id": peer_id},
+    )
+    if peer_result.mappings().first() is None:
+        raise HTTPException(status_code=404, detail="user not found")
+
+    result = await db.execute(
+        text(
+            """
+            SELECT id, sender_id, recipient_id, contents, created_at
+            FROM messages
+            WHERE (sender_id = :me_id   AND recipient_id = :peer_id)
+               OR (sender_id = :peer_id AND recipient_id = :me_id)
+            ORDER BY created_at ASC, id ASC
+        """
+        ),
+        {"me_id": me.id, "peer_id": peer_id},
+    )
+    messages = result.mappings().all()
+
+    return [
+        MessageOut(
+            id=message["id"],
+            sender_id=message["sender_id"],
+            recipient_id=message["recipient_id"],
+            contents=message["contents"],
+            created_at=message["created_at"].isoformat(),
+        )
+        for message in messages
     ]
