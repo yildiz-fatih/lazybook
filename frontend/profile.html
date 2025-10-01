@@ -110,7 +110,7 @@
                     init();
                 }
             } else {
-                // follow / unfollow
+                // follow / unfollow + chat link
                 const followsDiv = document.getElementById('follows-info');
                 followsDiv.innerHTML = '';
 
@@ -136,6 +136,13 @@
                     init();
                 });
                 followsDiv.appendChild(followButton);
+
+                // chat link
+                const chatLink = document.createElement('a');
+                chatLink.href = `./chat.html?peer_id=${userId}`;
+                chatLink.textContent = 'chat';
+                chatLink.style.marginLeft = '6px';
+                followsDiv.appendChild(chatLink);
             }
 
             // followers / following

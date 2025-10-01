@@ -46,3 +46,12 @@ hr {
     text-align: center;
     margin-top: 2rem;
 }
+
+#messages {
+    height: 55vh;
+    overflow-y: auto;
+    text-align: left !important;
+    padding: 6px;
+    border: 1px solid lightgrey;
+    border-radius: 6px;
+}

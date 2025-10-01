@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chat - lazybook</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+
+<body>
+    <div class="top-bar">
+        <p id="title"></p>
+        <small id="conn-status"></small>
+    </div>
+
+    <hr>
+
+    <div id="messages"></div>
+
+    <form id="send-form" style="margin-top:10px;">
+        <input id="message-input" maxlength="1024" placeholder="type a message..." style="width:70%;"
+            autocomplete="off">
+        <input type="submit" value="send">
+    </form>
+
+    <script src="./common.js"></script>
+    <script>
+        const peerId = parseInt(new URLSearchParams(location.search).get('peer_id'));
+        const messagesDiv = document.getElementById('messages');
+        const title = document.getElementById('title');
+        const connStatus = document.getElementById('conn-status');
+        let meId = null;
+        let ws = null;
+
+        function scrollToBottom() {
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function renderMsg({ contents, created_at, sender_id }) {
+            const isMe = (sender_id !== peerId);
+            const wrap = document.createElement('div');
+            wrap.style.textAlign = isMe ? 'right' : 'left';
+            wrap.style.margin = '6px 0';
+
+            const bubble = document.createElement('span');
+            bubble.style.display = 'inline-block';
+            bubble.style.padding = '6px 8px';
+            bubble.style.border = '1px solid lightgrey';
+            bubble.style.borderRadius = '8px';
+            bubble.style.maxWidth = '80%';
+            bubble.style.wordBreak = 'break-word';
+            bubble.textContent = contents || '';
+
+            const time = document.createElement('small');
+            time.textContent = ' ' + new Date(created_at).toLocaleTimeString();
+
+            wrap.appendChild(bubble);
+            wrap.appendChild(time);
+            messagesDiv.appendChild(wrap);
+        }
+
+        async function loadAndRenderTopBar() {
+            const userRes = await authFetch(`${API}/users/${peerId}`);
+            if (!userRes.ok) {
+                alert('user not found');
+                window.location.replace('./index.html');
+                return;
+            }
+            const peer = await userRes.json();
+
+            const nameLink = document.createElement('a');
+            nameLink.href = `./profile.html?user_id=${peerId}`;
+            nameLink.textContent = peer.username;
+
+            title.innerHTML = '';
+            title.appendChild(document.createTextNode('chatting with '));
+            title.appendChild(nameLink);
+        }
+
+        async function loadMe() {
+            const meRes = await authFetch(`${API}/me`);
+            if (!meRes.ok) return;
+            const me = await meRes.json();
+            meId = me.id;
+        }
+
+        async function loadHistory() {
+            const res = await authFetch(`${API}/messages?peer_id=${peerId}`);
+            if (!res.ok) return;
+            const items = await res.json();
+            messagesDiv.innerHTML = '';
+            for (const m of items) renderMsg(m);
+        }
+
+        /*
+        incoming message:
+            class MessageOut(BaseModel):
+                id: int
+                sender_id: int
+                recipient_id: int
+                contents: str
+                created_at: str
+        */
+        function connectWs() {
+            if (!getToken()) return;
+
+            const url = (API + `/chatting?token=${encodeURIComponent(getToken())}`).replace("http://", "ws://");
+            ws = new WebSocket(url);
+
+            connStatus.textContent = '⏳ connecting…';
+
+            ws.onopen = () => {
+                connStatus.textContent = '🟢 connected';
+            };
+
+            ws.onclose = () => {
+                connStatus.textContent = '🔴 disconnected';
+                setTimeout(() => connectWs(), 1500); // auto-retry
+            };
+
+            ws.onerror = () => {
+                connStatus.textContent = '⚠️ error';
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data && data.type === 'error') {
+                    console.debug('ws error', data.code);
+                    return;
+                }
+
+                if (parseInt(data.sender_id) === peerId) {
+                    renderMsg({
+                        contents: data.contents,
+                        created_at: data.created_at,
+                        sender_id: data.sender_id
+                    });
+                    scrollToBottom();
+                }
+            };
+        }
+
+        function sendMessage(contents) {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('not connected');
+                return;
+            }
+
+            ws.send(JSON.stringify({ recipient_id: peerId, contents }));
+            // optimistically render
+            renderMsg({
+                contents,
+                created_at: new Date().toISOString(),
+                sender_id: meId
+            });
+            scrollToBottom();
+        }
+
+        document.getElementById('send-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('message-input');
+            const txt = input.value.trim();
+            if (!txt) return;
+            sendMessage(txt);
+            input.value = '';
+        });
+
+        async function init() {
+            if (!getToken()) {
+                window.location.replace('./login.html');
+                return;
+            }
+            if (!peerId) {
+                alert('missing peer_id');
+                window.location.replace('./index.html');
+                return;
+            }
+
+            await loadAndRenderTopBar();
+            await loadMe();
+            await loadHistory();
+            connectWs();
+
+            scrollToBottom();
+        }
+
+        init();
+        window.addEventListener('beforeunload', () => { ws && ws.close(); });
+    </script>
+</body>
+
+</html>
