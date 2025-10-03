@@ -9,6 +9,11 @@
 </head>
 
 <body>
+    <div class="top-bar">
+        <a href="./index.html">lazybook</a>
+        <button id="logout-button">logout</button>
+    </div>
+
     <h1 id="name-info"></h1>
     <p id="status-info"></p>
 
@@ -44,6 +49,11 @@
 
     <script src="./common.js"></script>
     <script>
+        document.getElementById('logout-button').addEventListener('click', () => {
+            removeToken();
+            location.replace('./index.html');
+        });
+
         const userId = new URLSearchParams(location.search).get('user_id');
 
         async function init() {
@@ -67,12 +77,15 @@
             document.getElementById('name-info').textContent = profile.username;
 
             if (profile.relationship.is_self) {
-                // status form
-                document.getElementById('status-input').value = profile.status || '';
-                document.getElementById('status-form').style.display = "block";
-                document.getElementById('post-form').style.display = "";
+                const statusInput = document.getElementById('status-input');
+                const statusForm = document.getElementById('status-form');
+                const postForm = document.getElementById('post-form');
 
-                document.getElementById('status-form').onsubmit = async (e) => {
+                statusInput.value = profile.status || '';
+                statusForm.style.display = "block";
+                postForm.style.display = "";
+
+                statusForm.onsubmit = async (e) => {
                     e.preventDefault();
 
                     const statusValue = document.getElementById('status-input').value.trim();
@@ -91,7 +104,7 @@
                     init();
                 }
 
-                document.getElementById('post-form').onsubmit = async (e) => {
+                postForm.onsubmit = async (e) => {
                     e.preventDefault();
 
                     const contents = document.getElementById('post-contents').value.trim();
@@ -106,6 +119,8 @@
                         alert('failed to create post');
                         return;
                     }
+
+                    postForm.reset();
 
                     init();
                 }

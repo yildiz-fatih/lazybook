@@ -39,7 +39,19 @@ hr {
     justify-content: space-between;
     gap: 8px;
     background: white;
-    padding-top: 10px;
+    border: 2px solid;
+    border-radius: 8px;
+    padding: 10px 20px;
+    margin-bottom: 24px;
+}
+
+.top-bar a {
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.top-bar a:hover {
+    text-decoration: underline;
 }
 
 #guest-view {
@@ -54,4 +66,12 @@ hr {
     padding: 6px;
     border: 1px solid lightgrey;
     border-radius: 6px;
+}
+
+.me-bubble {
+    background: #eef7ff;
+}
+
+.peer-bubble {
+    background: #f6f6f6;
 }

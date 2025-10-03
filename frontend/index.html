@@ -19,11 +19,10 @@
     <!-- App (logged in) view -->
     <div id="app-view" style="display:none">
         <div class="top-bar">
-            <p id="user-info"></p>
+            <a href="./index.html">lazybook</a>
+            <p id="profile-link"></p>
             <button id="logout-button">logout</button>
         </div>
-
-        <hr>
 
         <h2>new people:</h2>
         <div id="new-people"></div>
@@ -36,6 +35,8 @@
 
     <script src="./common.js"></script>
     <script>
+        let meId = null;
+
         function showGuest() {
             document.getElementById('guest-view').style.display = '';
             document.getElementById('app-view').style.display = 'none';
@@ -47,17 +48,17 @@
         }
 
         async function fetchAndRenderMe() {
-            const userInfo = document.getElementById('user-info');
-            userInfo.textContent = 'logged in as: ';
+            const profileLink = document.getElementById('profile-link');
 
             const response = await authFetch(`${API}/me`);
             if (!response.ok) { return; }
             const me = await response.json()
+            meId = me.id;
 
             const a = document.createElement('a');
             a.href = `./profile.html?user_id=${me.id}`;
-            a.textContent = me.username;
-            userInfo.appendChild(a);
+            a.textContent = 'profile';
+            profileLink.appendChild(a);
         }
 
         async function fetchAndRenderUsers() {
@@ -69,6 +70,8 @@
             newPeopleElement.innerHTML = '';
 
             for (const user of users) {
+                if (user.id === meId) continue; // skip me
+
                 const a = document.createElement('a');
                 a.href = `./profile.html?user_id=${user.id}`;
                 a.textContent = user.username;
@@ -91,7 +94,7 @@
 
         document.getElementById('logout-button').addEventListener('click', () => {
             removeToken();
-            init();
+            location.replace('./index.html');
         });
 
         async function init() {
