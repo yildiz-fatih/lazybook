@@ -28,6 +28,7 @@
         <input type="submit" value="send">
     </form>
 
+    <script src="./config.js"></script>
     <script src="./common.js"></script>
     <script>
         const peerId = parseInt(new URLSearchParams(location.search).get('peer_id'));
@@ -83,7 +84,7 @@
         }
 
         async function loadAndRenderTopBar() {
-            const userRes = await authFetch(`${API}/users/${peerId}`);
+            const userRes = await authFetch(`${window.env.API_BASE}/users/${peerId}`);
             if (!userRes.ok) {
                 alert('user not found');
                 window.location.replace('./index.html');
@@ -101,33 +102,24 @@
         }
 
         async function loadMe() {
-            const meRes = await authFetch(`${API}/me`);
+            const meRes = await authFetch(`${window.env.API_BASE}/me`);
             if (!meRes.ok) return;
             const me = await meRes.json();
             meId = me.id;
         }
 
         async function loadHistory() {
-            const res = await authFetch(`${API}/messages?peer_id=${peerId}`);
+            const res = await authFetch(`${window.env.API_BASE}/messages?peer_id=${peerId}`);
             if (!res.ok) return;
             const items = await res.json();
             messagesDiv.innerHTML = '';
             for (const m of items) renderMsg(m);
         }
 
-        /*
-        incoming message:
-            class MessageOut(BaseModel):
-                id: int
-                sender_id: int
-                recipient_id: int
-                contents: str
-                created_at: str
-        */
         function connectWs() {
             if (!getToken()) return;
 
-            const url = (API + `/chatting?token=${encodeURIComponent(getToken())}`).replace("http://", "ws://");
+            const url = (window.env.API_BASE + `/chatting?token=${encodeURIComponent(getToken())}`).replace("http://", "ws://");
             ws = new WebSocket(url);
 
             connStatus.textContent = '⏳ connecting…';

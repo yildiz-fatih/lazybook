@@ -23,6 +23,7 @@
         <p>don't have an account? <a href="./register.html">register</a></p>
     </form>
 
+    <script src="./config.js"></script>
     <script src="./common.js"></script>
     <script>
         document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -30,7 +31,7 @@
 
             const username = document.getElementById('username-input').value;
             const password = document.getElementById('password-input').value;
-            const response = await fetch(`${API}/auth/login`, {
+            const response = await fetch(`${window.env.API_BASE}/auth/login`, {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify({ username, password })

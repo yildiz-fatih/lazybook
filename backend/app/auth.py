@@ -1,5 +1,6 @@
 import os
 import time
+from typing import Optional
 import bcrypt
 import jwt
 from fastapi import Depends, HTTPException, WebSocketException, status
@@ -32,16 +33,18 @@ def verify_password(raw_password: str, hashed: str) -> bool:
 
 
 # Creates and returns a JWT containing the user’s ID, username, and expiration details
-def generate_access_token(user_id: int, username: str) -> str:
+def generate_access_token(user_id: int, username: Optional[str] | None = None) -> str:
     issued_at_seconds = int(time.time())
     expiration_seconds = issued_at_seconds + (15 * 60)  # expires in 15 mins
     payload = {
         "sub": str(user_id),
-        "name": username,
         "iat": issued_at_seconds,
         "exp": expiration_seconds,
         "typ": "access",
     }
+    if username:
+        payload["name"] = username
+
     return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
 
 

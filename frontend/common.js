@@ -1,5 +1,3 @@
-const API = "http://localhost:8000";
-
 // token helpers
 function getToken() { return localStorage.getItem("lazy_token"); }
 function setToken(t) { localStorage.setItem("lazy_token", t); }

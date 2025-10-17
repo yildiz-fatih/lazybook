@@ -1,5 +1,13 @@
 from datetime import datetime
-from sqlalchemy import DateTime, ForeignKey, String, func
+from enum import StrEnum
+from sqlalchemy import (
+    DateTime,
+    Enum,
+    ForeignKey,
+    String,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -8,15 +16,30 @@ class Base(DeclarativeBase):
     pass
 
 
+class AuthProviderEnum(StrEnum):
+    LOCAL = "local"
+    GOOGLE = "google"
+    GITHUB = "github"
+
+
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = (
+        UniqueConstraint("auth_provider", "auth_provider_user_id", name="ext_user"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(
-        String(32), unique=True, index=True, nullable=False
+    username: Mapped[str | None] = mapped_column(
+        String(64), unique=True, index=True, nullable=True
     )
-    password_hash: Mapped[str] = mapped_column(String(128), nullable=False)
+    password_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
     status: Mapped[str] = mapped_column(nullable=False, default="")
+    auth_provider: Mapped[AuthProviderEnum] = mapped_column(
+        Enum(AuthProviderEnum), nullable=False, default=AuthProviderEnum.LOCAL
+    )
+    auth_provider_user_id: Mapped[str | None] = mapped_column(
+        String, nullable=True, default=None
+    )
 
 
 class Follow(Base):

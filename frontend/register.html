@@ -24,6 +24,7 @@
         <p>already have an account? <a href="./login.html">log in</a></p>
     </form>
 
+    <script src="./config.js"></script>
     <script src="./common.js"></script>
     <script>
         document.getElementById('register-form').addEventListener('submit', async (e) => {
@@ -38,7 +39,7 @@
                 return;
             }
 
-            const response = await fetch(`${API}/auth/register`, {
+            const response = await fetch(`${window.env.API_BASE}/auth/register`, {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify({ username: username, password: password })

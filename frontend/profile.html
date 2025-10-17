@@ -47,6 +47,7 @@
 
     <div id="user-posts"></div>
 
+    <script src="./config.js"></script>
     <script src="./common.js"></script>
     <script>
         document.getElementById('logout-button').addEventListener('click', () => {
@@ -64,7 +65,7 @@
 
             if (!userId) { return; }
 
-            const profileResponse = await authFetch(`${API}/users/${userId}`);
+            const profileResponse = await authFetch(`${window.env.API_BASE}/users/${userId}`);
             if (profileResponse.status === 404) {
                 alert('user not found')
                 return;
@@ -90,7 +91,7 @@
 
                     const statusValue = document.getElementById('status-input').value.trim();
 
-                    const updateStatusResponse = await authFetch(`${API}/users/${userId}`, {
+                    const updateStatusResponse = await authFetch(`${window.env.API_BASE}/users/${userId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ status: statusValue })
@@ -110,7 +111,7 @@
                     const contents = document.getElementById('post-contents').value.trim();
                     if (!contents) { return; }
 
-                    const createPostResponse = await authFetch(`${API}/posts`, {
+                    const createPostResponse = await authFetch(`${window.env.API_BASE}/posts`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ contents })
@@ -142,7 +143,7 @@
                         method: profile.relationship.i_follow ? "DELETE" : "POST",
                     };
 
-                    const followToggleResponse = await authFetch(`${API}/users/${userId}/follow`, options);
+                    const followToggleResponse = await authFetch(`${window.env.API_BASE}/users/${userId}/follow`, options);
                     if (!followToggleResponse.ok) {
                         alert('follow action failed');
                         return;
@@ -167,7 +168,7 @@
                 const followsDiv = document.getElementById(type);
                 followsDiv.innerHTML = '';
 
-                const usersListResponse = await authFetch(`${API}/users/${userId}/${type}`);
+                const usersListResponse = await authFetch(`${window.env.API_BASE}/users/${userId}/${type}`);
                 if (!usersListResponse.ok) {
                     alert(`failed to load ${type}`);
                     continue;
@@ -183,7 +184,7 @@
             }
 
             // posts
-            const postsResponse = await authFetch(`${API}/users/${userId}/posts`);
+            const postsResponse = await authFetch(`${window.env.API_BASE}/users/${userId}/posts`);
             if (!postsResponse.ok) { return; }
             const posts = await postsResponse.json();
 

@@ -13,7 +13,8 @@
     <div id="guest-view" style="display:none">
         <h1>lazybook</h1>
         <hr>
-        <p>welcome — <a href="./login.html">log in</a> / <a href="./register.html">register</a></p>
+        <p>welcome — <a href="./login.html">log in</a> / <a href="./register.html">register</a>
+            / <button id="google-login">continue with Google</button></p>
     </div>
 
     <!-- App (logged in) view -->
@@ -33,7 +34,19 @@
         <div id="feed"></div>
     </div>
 
+    <script src="./config.js"></script>
     <script src="./common.js"></script>
+    <script>
+        document.getElementById("google-login").addEventListener("click", () => {
+            const authUrl = new URL(window.env.GOOGLE_AUTH_URL);
+            authUrl.searchParams.set("client_id", window.env.GOOGLE_CLIENT_ID);
+            authUrl.searchParams.set("redirect_uri", window.env.GOOGLE_REDIRECT_URI);
+            authUrl.searchParams.set("response_type", window.env.GOOGLE_RESPONSE_TYPE);
+            authUrl.searchParams.set("scope", window.env.GOOGLE_SCOPE);
+
+            window.location = authUrl.toString();
+        });
+    </script>
     <script>
         let meId = null;
 
@@ -50,7 +63,7 @@
         async function fetchAndRenderMe() {
             const profileLink = document.getElementById('profile-link');
 
-            const response = await authFetch(`${API}/me`);
+            const response = await authFetch(`${window.env.API_BASE}/me`);
             if (!response.ok) { return; }
             const me = await response.json()
             meId = me.id;
@@ -62,7 +75,7 @@
         }
 
         async function fetchAndRenderUsers() {
-            const response = await authFetch(`${API}/users`);
+            const response = await authFetch(`${window.env.API_BASE}/users`);
             if (!response.ok) { return; }
             const users = await response.json();
 
@@ -83,7 +96,7 @@
         }
 
         async function fetchAndRenderFeed() {
-            const response = await authFetch(`${API}/feed`);
+            const response = await authFetch(`${window.env.API_BASE}/feed`);
             if (!response.ok) return;
             const posts = await response.json();
 

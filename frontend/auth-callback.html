@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>logging in... - lazybook</title>
+</head>
+
+<body>
+    <p id="state">please wait...</p>
+    <script src="./config.js"></script>
+    <script src="./common.js"></script>
+    <script>
+        async function handleGoogleCallback() {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get("code");
+
+            if (!code) {
+                document.getElementById("state").textContent = "missing code, login failed";
+                return;
+            }
+
+            try {
+                const response = await fetch(`${window.env.API_BASE}/auth/google`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ code })
+                });
+                if (!response.ok) {
+                    throw new Error(`login failed, ${response.status}`);
+                }
+
+                const data = await response.json();
+                const jwt = data.access_token;
+                if (!jwt) {
+                    throw new Error(`login failed, ${response.status}`);
+                }
+
+                setToken(jwt);
+                window.location.replace(`./index.html`);
+
+            } catch (err) {
+                console.error("error during login:", err);
+                document.getElementById("state").textContent = "login failed, try again";
+            }
+        }
+
+        // run it as soon as the page loads
+        handleGoogleCallback();
+    </script>
+</body>
+
+</html>

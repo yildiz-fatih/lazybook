@@ -1,5 +1,6 @@
 import os
 from contextlib import asynccontextmanager
+import traceback
 from fastapi import (
     Depends,
     FastAPI,
@@ -11,9 +12,15 @@ from fastapi import (
     status,
 )
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import httpx
+from google.oauth2 import id_token
+from google.auth.transport import requests
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import desc, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from .utils import generate_unique_username
 from .auth import (
     generate_access_token,
     get_current_user,
@@ -22,7 +29,7 @@ from .auth import (
     verify_password,
 )
 from .database import AsyncSessionLocal, engine, get_db
-from .models import Base, Follow, Post, User, Message
+from .models import AuthProviderEnum, Base, Follow, Post, User, Message
 
 
 # ===== App startup and configs =====
@@ -43,9 +50,13 @@ app = FastAPI(lifespan=lifespan)
 FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN")
 if not FRONTEND_ORIGIN:
     raise RuntimeError("FRONTEND_ORIGIN is not set in environment variables.")
+
+origins = [FRONTEND_ORIGIN, "http://127.0.0.1:5173"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_ORIGIN],
+    allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -78,7 +89,11 @@ async def register(payload: RegisterIn, db: AsyncSession = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=409, detail="username already taken")
 
-    user = User(username=username, password_hash=hash_password(payload.password))
+    user = User(
+        username=username,
+        password_hash=hash_password(payload.password),
+        auth_provider=AuthProviderEnum.LOCAL,
+    )
     db.add(user)
     await db.commit()
 
@@ -89,12 +104,79 @@ async def register(payload: RegisterIn, db: AsyncSession = Depends(get_db)):
 async def login(payload: LoginIn, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.username == payload.username))
     user = result.scalars().first()
-    if not user or not verify_password(payload.password, user.password_hash):
+    if (
+        not user
+        or not user.password_hash
+        or not verify_password(payload.password, user.password_hash)
+        or user.auth_provider != AuthProviderEnum.LOCAL
+    ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid credentials"
         )
 
     token = generate_access_token(user_id=user.id, username=user.username)
+
+    return {"access_token": token, "token_type": "Bearer"}
+
+
+class GoogleLoginIn(BaseModel):
+    code: str
+
+
+@app.post("/auth/google")
+async def google_login(payload: GoogleLoginIn, db: AsyncSession = Depends(get_db)):
+    url = "https://oauth2.googleapis.com/token"
+    data = {
+        "code": payload.code,
+        "client_id": os.getenv("GOOGLE_CLIENT_ID"),
+        "client_secret": os.getenv("GOOGLE_CLIENT_SECRET"),
+        "redirect_uri": os.getenv("GOOGLE_REDIRECT_URI"),
+        "grant_type": "authorization_code",
+    }
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+    # exchange the one-time "code" for tokens
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, data=data, headers=headers)
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=400, detail="failed to exchange code")
+
+    tokens = response.json()
+    id_token_str = tokens["id_token"]
+    if not id_token_str:
+        raise HTTPException(status_code=400, detail="missing id_token from Google")
+
+    # verify & decode the ID token
+    try:
+        claims = id_token.verify_oauth2_token(
+            id_token_str, requests.Request(), os.getenv("GOOGLE_CLIENT_ID")
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="id_token verification failed")
+
+    # look up user
+    result = await db.execute(
+        select(User).where(
+            User.auth_provider == AuthProviderEnum.GOOGLE,
+            User.auth_provider_user_id == claims["sub"],
+        )
+    )
+    user = result.scalars().first()
+    if not user:
+        random_username = await generate_unique_username(db)
+
+        user = User(
+            auth_provider=AuthProviderEnum.GOOGLE,
+            auth_provider_user_id=claims["sub"],
+            username=random_username,
+            password_hash=None,
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+    # generate JWT
+    token = generate_access_token(user_id=user.id)
 
     return {"access_token": token, "token_type": "Bearer"}
 
@@ -111,7 +193,7 @@ async def get_users(
 
 class UserOut(BaseModel):
     id: int
-    username: str
+    username: str | None
     status: str
 
 
@@ -123,7 +205,7 @@ class Relationship(BaseModel):
 
 class UserProfileOut(BaseModel):
     id: int
-    username: str
+    username: str | None
     status: str
     followers_count: int
     following_count: int
@@ -380,7 +462,7 @@ class PostCreateIn(BaseModel):
 class PostOut(BaseModel):
     id: int
     user_id: int
-    username: str
+    username: str | None
     contents: str
     created_at: str
 
