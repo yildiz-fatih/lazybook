@@ -1,0 +1,6 @@
+# Build output
+**/bin/
+**/obj/
+
+# macOS Finder metadata
+.DS_Store

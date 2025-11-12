@@ -1,0 +1,6 @@
+@Lazybook.Api_HostAddress = http://localhost:5174
+
+GET {{Lazybook.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
