@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>lazybook</title>
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+
+<body>
+  <!-- Guest (not logged in) view -->
+  <div id="guest-view" style="display:none">
+    <h1>lazybook</h1>
+    <hr>
+    <a href="./login.html">log in</a> / <a href="./register.html">register</a>
+  </div>
+
+  <!-- App (logged in) view -->
+  <div id="app-view" style="display:none">
+    <h1>welcome</h1>
+    <hr>
+    <button id="logout-button">logout</button>
+  </div>
+
+  <script type="module" src="./src/index.js"></script>
+</body>
+
+</html>
