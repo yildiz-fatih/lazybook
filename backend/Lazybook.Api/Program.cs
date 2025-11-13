@@ -1,5 +1,9 @@
+using System.Text;
 using Lazybook.Api.Data;
+using Lazybook.Api.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +17,22 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(
     builder.Configuration.GetConnectionString("DefaultConnection")
     ).UseSnakeCaseNamingConvention());
+// Register custom services
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["JWT_SECRET"]!)
+            ),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true
+        };
+    });
 
 var app = builder.Build();
 
@@ -24,6 +44,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication(); // Checks if the JWT is valid
 
 app.UseAuthorization();
 
