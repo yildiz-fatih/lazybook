@@ -9,11 +9,12 @@ public enum AuthProviderEnum
 {
     Local,
     Google,
-    GitHub
+    GitHub,
 }
 
 [Table("users")]
 [Index(nameof(AuthProvider), nameof(AuthProviderUserId), IsUnique = true)]
+[Index(nameof(Username), IsUnique = true)]
 public class User
 {
     [Key]
@@ -34,4 +35,3 @@ public class User
 
     public string? AuthProviderUserId { get; set; }
 }
-
