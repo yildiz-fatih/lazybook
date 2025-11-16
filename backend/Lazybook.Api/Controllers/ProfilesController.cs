@@ -20,6 +20,23 @@ namespace Lazybook.Api.Controllers
             _dbContext = dbContext;
         }
 
+        [HttpGet("search")]
+        public async Task<IActionResult> Search([FromQuery] string username)
+        {
+            // Handle empty search
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return Ok(new List<ProfileSummaryResponse>());
+            }
+            // Search users by username starting with query
+            var users = await _dbContext.Users
+                .Where(u => u.Username.ToLower().StartsWith(username.ToLower()))
+                .Take(10)
+                .Select(u => new ProfileSummaryResponse { Id = u.Id, Username = u.Username })
+                .ToListAsync();
+            return Ok(users);
+        }
+
         [HttpGet("{username}")]
         public async Task<IActionResult> GetByUsername([FromRoute] string username)
         {
