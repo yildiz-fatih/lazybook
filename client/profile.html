@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>profile</title>
+    <link rel="stylesheet" href="./src/style.css">
+</head>
+
+<body>
+    <!-- Navigation bar -->
+    <div id="nav">
+        <a href="./index.html" style="font-weight:bold">lazybook</a> |
+        <a href="./search.html">search</a> |
+        <a href="./profile.html" id="profile-link">profile</a> |
+        <button id="logout-btn">logout</button>
+    </div>
+    <hr>
+
+    <!-- Profile header -->
+    <div id="profile-header">
+        <h2 id="profile-username"></h2>
+
+        <!-- Status section -->
+        <div id="status-section">
+            <p>Status: <span id="status-display"></span></p>
+            <!-- Edit form only shown if it's your profile -->
+            <div id="status-edit" style="display:none">
+                <input id="status-input" placeholder="Update status">
+                <button id="status-save-btn">save</button>
+            </div>
+        </div>
+
+        <!-- Follow/Unfollow button (only shown if viewing someone else) -->
+        <div id="follow-section" style="display:none">
+            <button id="follow-btn"></button>
+            <span id="follows-me-indicator"></span>
+        </div>
+
+        <!-- Stats and links -->
+        <p>
+            <a href="#" id="followers-link">
+                <span id="follower-count"></span> followers
+            </a> |
+            <a href="#" id="following-link">
+                <span id="following-count"></span> following
+            </a>
+        </p>
+    </div>
+
+    <hr>
+
+    <script type="module" src="./src/profile.js"></script>
+</body>
+
+</html>

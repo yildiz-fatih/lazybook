@@ -1,4 +1,4 @@
-import { getToken, removeToken } from './common.js'
+import { getToken, setupNavigation } from './common.js'
 
 function showGuest()
 {
@@ -12,13 +12,7 @@ function showApp()
     document.getElementById('app-view').style.display = ''
 }
 
-document.getElementById('logout-button').addEventListener('click', () =>
-{
-    removeToken()
-    showGuest()
-})
-
-function init()
+async function init()
 {
     if (!getToken())
     {
@@ -26,6 +20,8 @@ function init()
     } else
     {
         showApp()
+        // Setup navigation
+        await setupNavigation()
     }
 }
 
