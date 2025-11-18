@@ -155,5 +155,26 @@ namespace Lazybook.Api.Controllers
             var following = await _dbContext.UserFollows.Where(uf => uf.FollowerId == user.Id).Select(uf => new ProfileSummaryResponse { Id = uf.Following.Id, Username = uf.Following.Username }).ToListAsync();
             return Ok(following);
         }
+
+        [HttpGet("{username}/posts")]
+        public async Task<IActionResult> GetPosts([FromRoute] string username)
+        {
+            // Check if user exists
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == username);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+            // Get and return posts
+            var posts = await _dbContext.Posts.Where(p => p.UserId == user.Id).OrderByDescending(p => p.CreatedAt).Select(p => new PostResponse
+            {
+                Id = p.Id,
+                UserId = p.UserId,
+                Username = p.User.Username,
+                Text = p.Text,
+                CreatedAt = p.CreatedAt
+            }).ToListAsync();
+            return Ok(posts);
+        }
     }
 }

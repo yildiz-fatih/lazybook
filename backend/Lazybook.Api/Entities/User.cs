@@ -34,4 +34,5 @@ public class User
     public AuthProviderEnum AuthProvider { get; set; } = AuthProviderEnum.Local;
 
     public string? AuthProviderUserId { get; set; }
+    public ICollection<Post> Posts { get; set; } = [];
 }
