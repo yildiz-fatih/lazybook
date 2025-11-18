@@ -1,4 +1,4 @@
-import { API, fetchWithAuth, getQueryParam, setupNavigation } from './common.js'
+import { API, fetchWithAuth, getQueryParam, setupNavigation, formatTime } from './common.js'
 
 let currentProfileUsername = null
 let profileData = null
@@ -20,6 +20,9 @@ async function init()
     // Load profile
     await loadProfile()
 
+    // Load posts
+    await loadPosts()
+
     // Setup event listeners
     setupEventListeners()
 }
@@ -37,6 +40,45 @@ async function loadProfile()
 
     profileData = await response.json()
     renderProfile()
+}
+
+async function loadPosts()
+{
+    const response = await fetchWithAuth(`${API}/profiles/${currentProfileUsername}/posts`)
+    const postsList = document.getElementById('posts-list')
+
+    if (!response.ok)
+    {
+        postsList.innerHTML = '<p>Failed to load posts</p>'
+        return
+    }
+
+    const posts = await response.json()
+
+    if (posts.length === 0)
+    {
+        postsList.innerHTML = '<p>No posts yet</p>'
+        return
+    }
+
+    // Build posts HTML
+    let html = '<div>'
+    for (const post of posts)
+    {
+        const timestamp = formatTime(post.createdAt)
+        html += `
+            <div style="margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
+                <div>
+                    <a href="./profile.html?username=${post.username}"><strong>${post.username}</strong></a>
+                    <span style="color: #666;"> (${timestamp})</span>
+                </div>
+                <div>${post.text}</div>
+            </div>
+        `
+    }
+    html += '</div>'
+
+    postsList.innerHTML = html
 }
 
 function renderProfile()
@@ -58,6 +100,9 @@ function renderProfile()
     // Show/hide sections based on isSelf
     if (profileData.isSelf)
     {
+        // Show create post
+        document.getElementById('create-post').style.display = ''
+
         // Show status edit
         document.getElementById('status-edit').style.display = ''
         document.getElementById('status-input').value = profileData.status
@@ -66,6 +111,9 @@ function renderProfile()
         document.getElementById('follow-section').style.display = 'none'
     } else
     {
+        // Hide create post
+        document.getElementById('create-post').style.display = 'none'
+
         // Hide status edit
         document.getElementById('status-edit').style.display = 'none'
 
@@ -90,6 +138,13 @@ function renderProfile()
 
 function setupEventListeners()
 {
+    // Post button
+    const postBtn = document.getElementById('post-btn')
+    if (postBtn)
+    {
+        postBtn.addEventListener('click', handleCreatePost)
+    }
+
     // Status save button
     const statusSaveBtn = document.getElementById('status-save-btn')
     if (statusSaveBtn)
@@ -143,6 +198,35 @@ async function handleFollowToggle()
 
     // Reload profile to get updated counts and status
     await loadProfile()
+}
+
+async function handleCreatePost()
+{
+    const postInput = document.getElementById('post-input')
+    const text = postInput.value.trim()
+
+    if (!text)
+    {
+        alert('Post cannot be empty')
+        return
+    }
+
+    const response = await fetchWithAuth(`${API}/posts`, {
+        method: 'POST',
+        body: JSON.stringify({ text: text })
+    })
+
+    if (!response.ok)
+    {
+        alert('Failed to create post')
+        return
+    }
+
+    // Clear input
+    postInput.value = ''
+
+    // Reload posts to show the new one
+    await loadPosts()
 }
 
 init()

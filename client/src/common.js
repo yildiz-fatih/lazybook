@@ -12,6 +12,13 @@ export function getQueryParam(name)
     return params.get(name)
 }
 
+// Format ISO time string to "HH:MM"
+export function formatTime(isoString)
+{
+    const date = new Date(isoString)
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+}
+
 // Fetch with auth header
 export async function fetchWithAuth(url, options = {})
 {

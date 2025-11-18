@@ -1,4 +1,4 @@
-import { getToken, setupNavigation } from './common.js'
+import { getToken, setupNavigation, fetchWithAuth, API, formatTime } from './common.js'
 
 function showGuest()
 {
@@ -12,6 +12,45 @@ function showApp()
     document.getElementById('app-view').style.display = ''
 }
 
+async function loadFeed()
+{
+    const response = await fetchWithAuth(`${API}/posts`)
+    const feed = document.getElementById('feed')
+
+    if (!response.ok)
+    {
+        feed.innerHTML = '<p>Failed to load feed</p>'
+        return
+    }
+
+    const posts = await response.json()
+
+    if (posts.length === 0)
+    {
+        feed.innerHTML = '<p>No posts yet</p>'
+        return
+    }
+
+    // Build feed HTML
+    let html = '<div>'
+    for (const post of posts)
+    {
+        const timestamp = formatTime(post.createdAt)
+        html += `
+            <div style="margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
+                <div>
+                    <a href="./profile.html?username=${post.username}"><strong>${post.username}</strong></a>
+                    <span style="color: #666;"> (${timestamp})</span>
+                </div>
+                <div>${post.text}</div>
+            </div>
+        `
+    }
+    html += '</div>'
+
+    feed.innerHTML = html
+}
+
 async function init()
 {
     if (!getToken())
@@ -22,6 +61,8 @@ async function init()
         showApp()
         // Setup navigation
         await setupNavigation()
+        // Load feed
+        await loadFeed()
     }
 }
 
