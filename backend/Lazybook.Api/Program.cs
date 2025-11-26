@@ -1,5 +1,6 @@
 using System.Text;
 using Lazybook.Api.Data;
+using Lazybook.Api.Hubs;
 using Lazybook.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+builder.Services.AddSignalR();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -32,6 +36,29 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = false,
             ValidateLifetime = true
         };
+
+        // Allow SignalR to read JWT from query string
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                // Get the access token from query string
+                var accessToken = context.Request.Query["access_token"];
+
+                // Get the path of the request
+                var path = context.HttpContext.Request.Path;
+
+                // If the request is for our SignalR hub AND has a token...
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/chat"))
+                {
+                    // Read the token from query string
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddCors(options =>
@@ -39,9 +66,10 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
     {
         policy
-            .AllowAnyOrigin()
+            .WithOrigins("http://localhost:5173") // Vite dev server
             .AllowAnyMethod()
-            .AllowAnyHeader();
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
 
@@ -61,6 +89,8 @@ app.UseCors();
 app.UseAuthentication(); // Checks if the JWT is valid
 
 app.UseAuthorization();
+
+app.MapHub<ChatHub>("/chat");
 
 app.MapControllers();
 

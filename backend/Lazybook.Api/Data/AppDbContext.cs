@@ -17,4 +17,5 @@ public class AppDbContext : DbContext
     public DbSet<User> Users { get; set; } = null!; // Will be initialized by EF Core, use 'null!' to suppress nullable warning
     public DbSet<UserFollow> UserFollows { get; set; } = null!;
     public DbSet<Post> Posts { get; set; } = null!;
+    public DbSet<Message> Messages { get; set; } = null!;
 }

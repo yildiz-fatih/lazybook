@@ -133,6 +133,9 @@ function renderProfile()
         {
             followsMe.textContent = ''
         }
+
+        // Set message link
+        document.getElementById('message-link').href = `./chat.html?username=${profileData.username}`
     }
 }
 
