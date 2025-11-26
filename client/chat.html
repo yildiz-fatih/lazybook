@@ -5,33 +5,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>chat</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <link rel="stylesheet" href="./src/style.css">
 </head>
 
 <body>
-    <!-- Navigation bar -->
-    <div id="nav">
-        <a href="./index.html" style="font-weight:bold">lazybook</a> |
-        <a href="./search.html">search</a> |
-        <a href="./profile.html" id="profile-link">profile</a> |
-        <button id="logout-btn">logout</button>
-    </div>
-    <hr>
+    <main class="container">
+        <!-- Navigation bar -->
+        <nav>
+            <ul>
+                <li><strong><a href="./index.html">lazybook</a></strong></li>
+            </ul>
+            <ul>
+                <li><a href="./search.html">search</a></li>
+                <li><a href="./profile.html" id="profile-link">profile</a></li>
+                <li><button id="logout-btn" class="secondary">logout</button></li>
+            </ul>
+        </nav>
 
-    <h2>chat with <span id="other-username"></span></h2>
+        <h2>chat with <span id="other-username"></span></h2>
 
-    <!-- Messages display -->
-    <div id="messages"
-        style="height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
-    </div>
+        <!-- Messages display -->
+        <article id="messages" style="height: 400px; overflow-y: scroll; padding: 1rem; margin-bottom: 1rem;">
+            <p>loading...</p>
+        </article>
 
-    <!-- Message input -->
-    <div>
-        <input id="message-input" placeholder="Type a message..." style="width: 70%;">
-        <button id="send-btn">send</button>
-    </div>
+        <!-- Message input -->
+        <div style="display: flex; gap: 0.5rem;">
+            <input id="message-input" placeholder="Type a message..." style="flex: 1;">
+            <button id="send-btn">send</button>
+        </div>
 
-    <p><a href="#" id="back-link">← back to profile</a></p>
+        <p><a href="#" id="back-link">← back to profile</a></p>
+    </main>
 
     <script type="module" src="./src/chat.js"></script>
 </body>

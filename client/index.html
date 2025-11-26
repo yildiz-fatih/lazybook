@@ -5,31 +5,36 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>lazybook</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
   <link rel="stylesheet" href="./src/style.css">
 </head>
 
 <body>
-  <!-- Guest (not logged in) view -->
-  <div id="guest-view" style="display:none">
-    <h1>lazybook</h1>
-    <hr>
-    <a href="./login.html">log in</a> / <a href="./register.html">register</a>
-  </div>
-
-  <!-- App (logged in) view -->
-  <div id="app-view" style="display:none">
-    <!-- Navigation bar -->
-    <div id="nav">
-      <a href="./index.html" style="font-weight:bold">lazybook</a> |
-      <a href="./search.html">search</a> |
-      <a href="./profile.html" id="profile-link">profile</a> |
-      <button id="logout-btn">logout</button>
+  <main class="container">
+    <!-- Guest (not logged in) view -->
+    <div id="guest-view" style="display:none">
+      <h1>lazybook</h1>
+      <p><a href="./login.html">log in</a> / <a href="./register.html">register</a></p>
     </div>
-    <hr>
 
-    <h2>feed</h2>
-    <div id="feed"></div>
-  </div>
+    <!-- App (logged in) view -->
+    <div id="app-view" style="display:none">
+      <!-- Navigation bar -->
+      <nav>
+        <ul>
+          <li><strong><a href="./index.html">lazybook</a></strong></li>
+        </ul>
+        <ul>
+          <li><a href="./search.html">search</a></li>
+          <li><a href="./profile.html" id="profile-link">profile</a></li>
+          <li><button id="logout-btn" class="secondary">logout</button></li>
+        </ul>
+      </nav>
+
+      <h2>feed</h2>
+      <div id="feed"></div>
+    </div>
+  </main>
 
   <script type="module" src="./src/index.js"></script>
 </body>

@@ -1,0 +1,20 @@
+/* Override Pico defaults */
+:root:not([data-theme]),
+[data-theme="light"],
+[data-theme="dark"] {
+    --pico-primary: #d97857;
+    --pico-primary-hover: #c5664a;
+    --pico-primary-focus: rgba(217, 120, 87, 0.125);
+    --pico-primary-inverse: #fff;
+    /* Book-like font */
+    --pico-font-family: "Georgia", serif;
+}
+
+/* Make content more compact */
+.container {
+    max-width: 720px !important;
+}
+
+#messages {
+    height: 66vh !important;
+}

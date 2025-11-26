@@ -5,69 +5,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>profile</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <link rel="stylesheet" href="./src/style.css">
 </head>
 
 <body>
-    <!-- Navigation bar -->
-    <div id="nav">
-        <a href="./index.html" style="font-weight:bold">lazybook</a> |
-        <a href="./search.html">search</a> |
-        <a href="./profile.html" id="profile-link">profile</a> |
-        <button id="logout-btn">logout</button>
-    </div>
-    <hr>
+    <main class="container">
+        <!-- Navigation bar -->
+        <nav>
+            <ul>
+                <li><strong><a href="./index.html">lazybook</a></strong></li>
+            </ul>
+            <ul>
+                <li><a href="./search.html">search</a></li>
+                <li><a href="./profile.html" id="profile-link">profile</a></li>
+                <li><button id="logout-btn" class="secondary">logout</button></li>
+            </ul>
+        </nav>
 
-    <!-- Profile header -->
-    <div id="profile-header">
-        <h2 id="profile-username"></h2>
+        <!-- Profile header -->
+        <article>
+            <h2 id="profile-username"></h2>
 
-        <!-- Status section -->
-        <div id="status-section">
-            <p>Status: <span id="status-display"></span></p>
-            <!-- Edit form only shown if it's your profile -->
+            <!-- Status section -->
+            <p>Status: <em id="status-display"></em></p>
             <div id="status-edit" style="display:none">
                 <input id="status-input" placeholder="Update status">
                 <button id="status-save-btn">save</button>
             </div>
-        </div>
 
-        <!-- Follow/Unfollow button (only shown if viewing someone else) and chat button -->
-        <div id="follow-section" style="display:none">
-            <button id="follow-btn"></button>
-            <span id="follows-me-indicator"></span>
-            <br>
-            <a href="#" id="message-link">
-                <button>message</button>
-            </a>
-        </div>
+            <!-- Follow/Unfollow button (only shown if viewing someone else) -->
+            <div id="follow-section" style="display:none">
+                <button id="follow-btn"></button>
+                <span id="follows-me-indicator"></span>
+                <br>
+                <a href="#" id="message-link">
+                    <button class="secondary">message</button>
+                </a>
+            </div>
 
-        <!-- Stats and links -->
-        <p>
-            <a href="#" id="followers-link">
-                <span id="follower-count"></span> followers
-            </a> |
-            <a href="#" id="following-link">
-                <span id="following-count"></span> following
-            </a>
-        </p>
-    </div>
+            <!-- Stats and links -->
+            <p>
+                <a href="#" id="followers-link">
+                    <span id="follower-count"></span> followers
+                </a> |
+                <a href="#" id="following-link">
+                    <span id="following-count"></span> following
+                </a>
+            </p>
+        </article>
 
-    <hr>
-
-    <!-- Posts section -->
-    <div id="posts-section">
+        <!-- Posts section -->
         <h3>posts</h3>
 
         <!-- Create post (only shown if viewing own profile) -->
         <div id="create-post" style="display:none">
-            <input id="post-input" placeholder="drop some wisdom..." maxlength="280">
+            <textarea id="post-input" placeholder="drop some wisdom..." maxlength="280" rows="3"></textarea>
             <button id="post-btn">post</button>
         </div>
 
         <!-- User's posts list -->
         <div id="posts-list"></div>
-    </div>
+    </main>
 
     <script type="module" src="./src/profile.js"></script>
 </body>

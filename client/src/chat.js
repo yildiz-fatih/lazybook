@@ -79,10 +79,10 @@ function displayMessages(messages)
 
         html += `
             <div style="margin-bottom: 10px; text-align: ${isMine ? 'right' : 'left'};">
-                <div style="display: inline-block; max-width: 70%; background: ${isMine ? '#d1e7ff' : '#f0f0f0'}; padding: 8px; border-radius: 8px;">
-                    <div style="font-weight: bold; font-size: 12px;">${msg.senderUsername}</div>
-                    <div>${msg.text}</div>
-                    <div style="font-size: 10px; color: #666;">${time}</div>
+                <div style="display: inline-block; max-width: 70%; background: ${isMine ? 'var(--pico-primary)' : 'var(--pico-secondary-background)'}; color: ${isMine ? 'var(--pico-primary-inverse)' : 'var(--pico-color)'}; padding: 10px; border-radius: 8px;">
+                    <div style="font-weight: bold; font-size: 12px; opacity: 0.9;">${msg.senderUsername}</div>
+                    <div style="margin: 4px 0;">${msg.text}</div>
+                    <div style="font-size: 10px; opacity: 0.7;">${time}</div>
                 </div>
             </div>
         `
@@ -138,10 +138,10 @@ function appendMessage(message)
 
     const messageHtml = `
         <div style="margin-bottom: 10px; text-align: ${isMine ? 'right' : 'left'};">
-            <div style="display: inline-block; max-width: 70%; background: ${isMine ? '#d1e7ff' : '#f0f0f0'}; padding: 8px; border-radius: 8px;">
-                <div style="font-weight: bold; font-size: 12px;">${message.senderUsername}</div>
-                <div>${message.text}</div>
-                <div style="font-size: 10px; color: #666;">${time}</div>
+            <div style="display: inline-block; max-width: 70%; background: ${isMine ? 'var(--pico-primary)' : 'var(--pico-secondary-background)'}; color: ${isMine ? 'var(--pico-primary-inverse)' : 'var(--pico-color)'}; padding: 10px; border-radius: 8px;">
+                <div style="font-weight: bold; font-size: 12px; opacity: 0.9;">${message.senderUsername}</div>
+                <div style="margin: 4px 0;">${message.text}</div>
+                <div style="font-size: 10px; opacity: 0.7;">${time}</div>
             </div>
         </div>
     `

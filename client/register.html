@@ -5,25 +5,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>register</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <link rel="stylesheet" href="./src/style.css">
 </head>
 
 <body>
-    <h1>register</h1>
-
-    <hr>
-
-    <form id="register-form">
-        username: <input required id="username-input"><br>
-        password: <input required id="password-input" type="password"><br>
-        confirm : <input required id="confirm-input" type="password"><br>
-        <input type="submit" value="register">
-    </form>
-
-    <hr>
-
-    <p>already have an account? <a href="./login.html">log in</a></p>
-
+    <main class="container">
+        <h1>register</h1>
+        <form id="register-form">
+            <label>
+                username
+                <input required id="username-input">
+            </label>
+            <label>
+                password
+                <input required id="password-input" type="password">
+            </label>
+            <label>
+                confirm
+                <input required id="confirm-input" type="password">
+            </label>
+            <button type="submit">register</button>
+        </form>
+        <hr>
+        <p>already have an account? <a href="./login.html">log in</a></p>
+    </main>
     <script type="module" src="./src/register.js"></script>
 </body>
 
