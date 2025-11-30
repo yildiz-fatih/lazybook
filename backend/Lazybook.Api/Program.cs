@@ -17,6 +17,13 @@ builder.Services.AddSignalR();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+// Register Redis distributed cache
+// This registers "IDistributedCache" to use Redis
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = "localhost:6379";
+    options.InstanceName = "Lazybook_"; // Adds a prefix to all keys
+});
 // Register DbContext as a scoped service in the dependency injection container
 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(
     builder.Configuration.GetConnectionString("DefaultConnection")
