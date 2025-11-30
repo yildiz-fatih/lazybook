@@ -14,7 +14,7 @@ function showApp()
 
 async function loadFeed()
 {
-    const response = await fetchWithAuth(`${API}/posts`)
+    const response = await fetchWithAuth(`${API}/feeds/home`)
     const feed = document.getElementById('feed')
 
     if (!response.ok)
