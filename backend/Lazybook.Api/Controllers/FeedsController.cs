@@ -50,5 +50,24 @@ namespace Lazybook.Api.Controllers
                 .ToListAsync();
             return Ok(posts);
         }
+
+        [HttpGet("explore")]
+        public async Task<IActionResult> GetExplore()
+        {
+            // Build and return explore feed
+            var posts = await _dbContext.Posts
+                .OrderByDescending(p => p.CreatedAt)    // Sort by newest first
+                .Take(50)                               // Limit to 50 posts
+                .Select(p => new PostResponse           // Project to PostResponse DTO
+                {
+                    Id = p.Id,
+                    UserId = p.UserId,
+                    Username = p.User.Username,
+                    Text = p.Text,
+                    CreatedAt = p.CreatedAt
+                })
+                .ToListAsync();
+            return Ok(posts);
+        }
     }
 }
