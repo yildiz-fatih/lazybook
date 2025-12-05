@@ -45,18 +45,29 @@
             </div>
 
             <!-- Status section -->
-            <p>Status: <em id="status-display"></em></p>
-            <div id="status-edit" style="display:none">
-                <input id="status-input" placeholder="Update status">
-                <button id="status-save-btn">save</button>
+            <div id="status-container" style="margin-bottom: 1.5rem; min-height: 2rem;">
+                <p id="status-text" style="display:none; margin-bottom: 0; color: var(--pico-muted-color);">
+                </p>
+
+                <form id="status-form" style="display:none;">
+                    <fieldset role="group" style="margin-bottom: 0; width: 100%; max-width: 300px;">
+
+                        <input id="status-input" name="status" placeholder="set a status..." autocomplete="off"
+                            style="padding: 0.4rem 0.8rem; font-size: 0.9rem; height: auto;">
+
+                        <input type="submit" value="save"
+                            style="padding: 0.4rem 0.8rem; font-size: 0.9rem; height: auto;" />
+
+                    </fieldset>
+                </form>
             </div>
 
             <!-- Follow/Unfollow button (only shown if viewing someone else) -->
-            <div id="follow-section" style="display:none">
-                <button id="follow-btn"></button>
+            <div id="follow-section" style="display:none; margin-bottom: 1rem;">
+                <button id="follow-btn" style="margin-bottom: 0.3rem"></button>
                 <span id="follows-me-indicator"></span>
                 <br>
-                <a href="#" id="message-link">
+                <a href="#" id="message-link" style="margin-bottom: 0.3rem">
                     <button class="secondary">message</button>
                 </a>
             </div>

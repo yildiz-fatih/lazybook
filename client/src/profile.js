@@ -89,9 +89,6 @@ function renderProfile()
     // Set username
     document.getElementById('profile-username').textContent = profileData.username
 
-    // Set status
-    document.getElementById('status-display').textContent = profileData.status || '(no status)'
-
     // Set follower/following counts
     document.getElementById('follower-count').textContent = profileData.followerCount
     document.getElementById('following-count').textContent = profileData.followingCount
@@ -99,6 +96,11 @@ function renderProfile()
     // Set follower/following links
     document.getElementById('followers-link').href = `./followers.html?username=${profileData.username}`
     document.getElementById('following-link').href = `./following.html?username=${profileData.username}`
+
+    // Get elements for status editing
+    const statusText = document.getElementById('status-text')
+    const statusForm = document.getElementById('status-form')
+    const statusInput = document.getElementById('status-input')
 
     // Show/hide sections based on isSelf
     if (profileData.isSelf)
@@ -109,9 +111,10 @@ function renderProfile()
         // Show create post
         document.getElementById('create-post').style.display = ''
 
-        // Show status edit
-        document.getElementById('status-edit').style.display = ''
-        document.getElementById('status-input').value = profileData.status
+        // Show status form, hide the text
+        statusForm.style.display = 'block'
+        statusInput.value = profileData.status || '(no status)'
+        statusText.style.display = 'none'
 
         // Hide follow section
         document.getElementById('follow-section').style.display = 'none'
@@ -123,8 +126,10 @@ function renderProfile()
         // Hide create post
         document.getElementById('create-post').style.display = 'none'
 
-        // Hide status edit
-        document.getElementById('status-edit').style.display = 'none'
+        // Hide status form, show the text
+        statusForm.style.display = 'none'
+        statusText.style.display = 'block'
+        statusText.textContent = profileData.status || '(no status)'
 
         // Show follow section
         document.getElementById('follow-section').style.display = ''
@@ -158,10 +163,28 @@ function setupEventListeners()
     }
 
     // Status save button
-    const statusSaveBtn = document.getElementById('status-save-btn')
-    if (statusSaveBtn)
+    const statusForm = document.getElementById('status-form')
+    if (statusForm)
     {
-        statusSaveBtn.addEventListener('click', handleStatusSave)
+        statusForm.addEventListener('submit', async (e) =>
+        {
+            e.preventDefault()
+            const input = document.getElementById('status-input')
+
+            const response = await fetchWithAuth(`${API}/account`, {
+                method: 'PUT',
+                body: JSON.stringify({ status: input.value })
+            })
+
+            if (response.ok)
+            {
+                profileData.status = input.value
+                alert('Status updated')
+            } else
+            {
+                alert('Failed to save status')
+            }
+        })
     }
 
     // Follow/unfollow button
