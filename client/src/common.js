@@ -1,3 +1,4 @@
+export const BASE_URL = "http://localhost:5174";
 export const API = "http://localhost:5174/api";
 
 // Token helpers
@@ -31,7 +32,7 @@ export async function fetchWithAuth(url, options = {})
 
     const headers = {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
         ...options.headers
     }
 
@@ -70,5 +71,19 @@ export async function setupNavigation()
             removeToken()
             window.location.replace('./index.html')
         })
+    }
+}
+
+export function getProfilePictureHtml(profilePictureUrl, size = 40)
+{
+    // If we have a URL, show the image
+    if (profilePictureUrl)
+    {
+        return `<img src="${BASE_URL}${profilePictureUrl}" class="profile-picture" style="width: ${size}px; height: ${size}px;">`
+    }
+    // Otherwise, show a placeholder
+    else
+    {
+        return `<div class="profile-picture placeholder" style="width: ${size}px; height: ${size}px;"></div>`
     }
 }

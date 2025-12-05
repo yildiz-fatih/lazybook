@@ -1,4 +1,4 @@
-import { API, fetchWithAuth, getQueryParam, setupNavigation } from './common.js'
+import { API, fetchWithAuth, getQueryParam, setupNavigation, getProfilePictureHtml } from './common.js'
 
 async function init()
 {
@@ -48,7 +48,12 @@ async function loadFollowers(username)
     let html = '<div>'
     for (const follower of followers)
     {
-        html += `<div><a href="./profile.html?username=${follower.username}">${follower.username}</a></div>`
+        html += `
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 5px; border-bottom: 1px solid #eee;">
+                ${getProfilePictureHtml(follower.profilePictureUrl, 40)}
+                <a href="./profile.html?username=${follower.username}"><strong>${follower.username}</strong></a>
+            </div>
+        `
     }
     html += '</div>'
 

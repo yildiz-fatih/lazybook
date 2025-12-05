@@ -26,7 +26,11 @@
 
         <!-- Profile header -->
         <article>
-            <h2 id="profile-username"></h2>
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div id="profile-picture"></div>
+
+                <h2 id="profile-username" style="margin-bottom: 0;"></h2>
+            </div>
 
             <!-- Status section -->
             <p>Status: <em id="status-display"></em></p>
@@ -60,7 +64,7 @@
         <h3>posts</h3>
 
         <!-- Create post (only shown if viewing own profile) -->
-        <div id="create-post" style="display:none">
+        <div id="create-post" style="display:none; margin-bottom: 2rem;">
             <textarea id="post-input" placeholder="drop some wisdom..." maxlength="280" rows="3"></textarea>
             <button id="post-btn">post</button>
         </div>

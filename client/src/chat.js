@@ -1,4 +1,4 @@
-import { API, fetchWithAuth, getQueryParam, setupNavigation, formatTime, getToken } from './common.js'
+import { API, fetchWithAuth, getQueryParam, setupNavigation, formatTime, getToken, getProfilePictureHtml } from './common.js'
 import * as signalR from '@microsoft/signalr'
 
 let otherUsername = null
@@ -18,6 +18,9 @@ async function init()
         window.location.replace('./index.html')
         return
     }
+
+    // Load chat header
+    await loadChatHeader()
 
     // Get current user's username
     const accountResponse = await fetchWithAuth(`${API}/account`)
@@ -48,6 +51,18 @@ async function init()
             sendMessage()
         }
     })
+}
+
+async function loadChatHeader()
+{
+    document.getElementById('other-username').textContent = otherUsername;
+
+    const response = await fetchWithAuth(`${API}/profiles/${otherUsername}`);
+    if (response.ok)
+    {
+        const user = await response.json();
+        document.getElementById('other-profile-picture').innerHTML = getProfilePictureHtml(user.profilePictureUrl, 50);
+    }
 }
 
 async function loadMessages()

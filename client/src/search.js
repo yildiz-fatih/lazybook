@@ -1,4 +1,4 @@
-import { API, fetchWithAuth, setupNavigation } from './common.js'
+import { API, fetchWithAuth, setupNavigation, getProfilePictureHtml } from './common.js'
 
 async function init()
 {
@@ -46,7 +46,12 @@ async function handleSearch(event)
     let html = '<div>'
     for (const user of users)
     {
-        html += `<div><a href="./profile.html?username=${user.username}">${user.username}</a></div>`
+        html += `
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 5px; border-bottom: 1px solid #eee;">
+                ${getProfilePictureHtml(user.profilePictureUrl, 40)}
+                <a href="./profile.html?username=${user.username}"><strong>${user.username}</strong></a>
+            </div>
+        `
     }
     html += '</div>'
 

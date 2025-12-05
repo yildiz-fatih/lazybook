@@ -1,4 +1,4 @@
-import { API, fetchWithAuth, getQueryParam, setupNavigation, formatTime } from './common.js'
+import { API, fetchWithAuth, getQueryParam, setupNavigation, formatTime, getProfilePictureHtml } from './common.js'
 
 let currentProfileUsername = null
 let profileData = null
@@ -83,6 +83,9 @@ async function loadPosts()
 
 function renderProfile()
 {
+    // Set profile picture
+    document.getElementById('profile-picture').innerHTML = getProfilePictureHtml(profileData.profilePictureUrl, 80)
+
     // Set username
     document.getElementById('profile-username').textContent = profileData.username
 

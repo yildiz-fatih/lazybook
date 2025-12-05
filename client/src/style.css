@@ -18,3 +18,22 @@
 #messages {
     height: 66vh !important;
 }
+
+/* Profile picture */
+.profile-picture {
+    border-radius: 50%;
+    object-fit: cover;
+    display: inline-block;
+    vertical-align: middle;
+    background-color: #ddd;
+    margin-right: 10px;
+    border: 2px solid var(--pico-background-color);
+}
+
+.profile-picture.placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ccc;
+    color: #fff;
+}
