@@ -7,6 +7,7 @@ public class ProfileDetailsResponse
     public int Id { get; init; }
     public string? Username { get; init; }
     public required string Status { get; init; }
+    public string? ProfilePictureUrl { get; init; }
 
     // Calculated fields
     public int FollowerCount { get; init; }

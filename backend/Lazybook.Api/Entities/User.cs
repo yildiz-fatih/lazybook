@@ -26,6 +26,8 @@ public class User
     [MaxLength(128)]
     [Column("password_hash")]
     public required string PasswordHash { get; set; }
+    [MaxLength(256)]
+    public string? PictureUrl { get; set; }
 
     [Required]
     public string Status { get; set; } = string.Empty;

@@ -48,6 +48,7 @@ namespace Lazybook.Api.Controllers
                     Id = p.Id,
                     UserId = p.UserId,
                     Username = p.User.Username,
+                    ProfilePictureUrl = p.User.PictureUrl,
                     Text = p.Text,
                     CreatedAt = p.CreatedAt
                 })
@@ -82,6 +83,7 @@ namespace Lazybook.Api.Controllers
                     Id = p.Id,
                     UserId = p.UserId,
                     Username = p.User.Username,
+                    ProfilePictureUrl = p.User.PictureUrl,
                     Text = p.Text,
                     CreatedAt = p.CreatedAt
                 })

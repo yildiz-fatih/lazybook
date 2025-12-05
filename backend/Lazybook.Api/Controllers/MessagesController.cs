@@ -52,7 +52,9 @@ namespace Lazybook.Api.Controllers
                 {
                     Id = m.Id,
                     SenderUsername = m.Sender.Username,
+                    SenderProfilePictureUrl = m.Sender.PictureUrl,
                     RecipientUsername = m.Recipient.Username,
+                    RecipientProfilePictureUrl = m.Recipient.PictureUrl,
                     Text = m.Text,
                     CreatedAt = m.CreatedAt
                 })

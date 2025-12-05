@@ -56,7 +56,9 @@ public class ChatHub : Hub
         {
             Id = message.Id,
             SenderUsername = sender.Username,
+            SenderProfilePictureUrl = sender.PictureUrl,
             RecipientUsername = recipient.Username,
+            RecipientProfilePictureUrl = recipient.PictureUrl,
             Text = message.Text,
             CreatedAt = message.CreatedAt
         };

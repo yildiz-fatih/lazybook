@@ -32,7 +32,7 @@ namespace Lazybook.Api.Controllers
             var users = await _dbContext.Users
                 .Where(u => u.Username.ToLower().StartsWith(username.ToLower()))
                 .Take(10)
-                .Select(u => new ProfileSummaryResponse { Id = u.Id, Username = u.Username })
+                .Select(u => new ProfileSummaryResponse { Id = u.Id, Username = u.Username, ProfilePictureUrl = u.PictureUrl })
                 .ToListAsync();
             return Ok(users);
         }
@@ -59,6 +59,7 @@ namespace Lazybook.Api.Controllers
             {
                 Id = user.Id,
                 Username = user.Username,
+                ProfilePictureUrl = user.PictureUrl,
                 Status = user.Status,
                 FollowerCount = followerCount,
                 FollowingCount = followingCount,
@@ -138,7 +139,15 @@ namespace Lazybook.Api.Controllers
                 return NotFound("User not found");
             }
             // Get and return followers
-            var followers = await _dbContext.UserFollows.Where(uf => uf.FollowingId == user.Id).Select(uf => new ProfileSummaryResponse { Id = uf.Follower.Id, Username = uf.Follower.Username }).ToListAsync();
+            var followers = await _dbContext.UserFollows
+                .Where(uf => uf.FollowingId == user.Id)
+                .Select(uf => new ProfileSummaryResponse
+                {
+                    Id = uf.Follower.Id,
+                    Username = uf.Follower.Username,
+                    ProfilePictureUrl = uf.Follower.PictureUrl
+                })
+                .ToListAsync();
             return Ok(followers);
         }
 
@@ -152,7 +161,15 @@ namespace Lazybook.Api.Controllers
                 return NotFound("User not found");
             }
             // Get and return following
-            var following = await _dbContext.UserFollows.Where(uf => uf.FollowerId == user.Id).Select(uf => new ProfileSummaryResponse { Id = uf.Following.Id, Username = uf.Following.Username }).ToListAsync();
+            var following = await _dbContext.UserFollows
+                .Where(uf => uf.FollowerId == user.Id)
+                .Select(uf => new ProfileSummaryResponse
+                {
+                    Id = uf.Following.Id,
+                    Username = uf.Following.Username,
+                    ProfilePictureUrl = uf.Following.PictureUrl
+                })
+                .ToListAsync();
             return Ok(following);
         }
 
@@ -166,14 +183,19 @@ namespace Lazybook.Api.Controllers
                 return NotFound("User not found");
             }
             // Get and return posts
-            var posts = await _dbContext.Posts.Where(p => p.UserId == user.Id).OrderByDescending(p => p.CreatedAt).Select(p => new PostResponse
-            {
-                Id = p.Id,
-                UserId = p.UserId,
-                Username = p.User.Username,
-                Text = p.Text,
-                CreatedAt = p.CreatedAt
-            }).ToListAsync();
+            var posts = await _dbContext.Posts
+                .Where(p => p.UserId == user.Id)
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new PostResponse
+                {
+                    Id = p.Id,
+                    UserId = p.UserId,
+                    Username = p.User.Username,
+                    ProfilePictureUrl = p.User.PictureUrl,
+                    Text = p.Text,
+                    CreatedAt = p.CreatedAt
+                })
+                .ToListAsync();
             return Ok(posts);
         }
     }

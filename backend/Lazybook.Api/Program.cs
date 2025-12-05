@@ -30,6 +30,7 @@ builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(
     ).UseSnakeCaseNamingConvention());
 // Register custom services
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<FileStorageService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -92,6 +93,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors();
+
+app.UseStaticFiles();
 
 app.UseAuthentication(); // Checks if the JWT is valid
 
