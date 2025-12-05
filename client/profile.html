@@ -26,10 +26,22 @@
 
         <!-- Profile header -->
         <article>
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                <div id="profile-picture"></div>
+            <div
+                style="display: grid; grid-template-columns: auto 1fr; gap: 1.5rem; align-items: center; margin-bottom: 1.5rem;">
 
-                <h2 id="profile-username" style="margin-bottom: 0;"></h2>
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                    <div id="profile-picture"></div>
+
+                    <div id="picture-upload-section" style="display:none; width: 100%; text-align: center;">
+                        <input type="file" id="picture-input" accept="image/*" style="display: none;">
+                        <button id="picture-btn" class="outline contrast"
+                            style="width: auto; padding: 6px; font-size: 0.8rem;">📷 picture</button>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 id="profile-username" style="margin-bottom: 0;"></h2>
+                </div>
             </div>
 
             <!-- Status section -->

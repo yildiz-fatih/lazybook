@@ -103,6 +103,9 @@ function renderProfile()
     // Show/hide sections based on isSelf
     if (profileData.isSelf)
     {
+        // Show picture upload
+        document.getElementById('picture-upload-section').style.display = 'block';
+
         // Show create post
         document.getElementById('create-post').style.display = ''
 
@@ -114,6 +117,9 @@ function renderProfile()
         document.getElementById('follow-section').style.display = 'none'
     } else
     {
+        // Hide picture upload
+        document.getElementById('picture-upload-section').style.display = 'none';
+
         // Hide create post
         document.getElementById('create-post').style.display = 'none'
 
@@ -163,6 +169,48 @@ function setupEventListeners()
     if (followBtn)
     {
         followBtn.addEventListener('click', handleFollowToggle)
+    }
+
+    // Picture Upload Logic
+    const pictureBtn = document.getElementById('picture-btn')
+    const pictureInput = document.getElementById('picture-input')
+
+    if (pictureBtn && pictureInput)
+    {
+        // Trigger file input on button click
+        pictureBtn.addEventListener('click', () => pictureInput.click())
+
+        // Handle file selection
+        pictureInput.addEventListener('change', async (e) =>
+        {
+            const file = e.target.files[0]
+            if (!file) return
+
+            const formData = new FormData()
+            formData.append('Image', file)
+
+            pictureBtn.disabled = true
+
+            try
+            {
+                const response = await fetchWithAuth(`${API}/account/picture`, {
+                    method: 'POST',
+                    body: formData
+                })
+
+                if (response.ok)
+                {
+                    await loadProfile()
+                } else
+                {
+                    alert('Upload failed');
+                }
+            } catch (err)
+            {
+                console.error(err)
+                alert('Error uploading image')
+            }
+        })
     }
 }
 
