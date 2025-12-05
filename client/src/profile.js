@@ -232,6 +232,9 @@ function setupEventListeners()
             {
                 console.error(err)
                 alert('Error uploading image')
+            } finally
+            {
+                pictureBtn.disabled = false
             }
         })
     }

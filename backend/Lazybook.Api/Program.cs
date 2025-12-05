@@ -5,6 +5,11 @@ using Lazybook.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using DotNetEnv;
+using Amazon.S3;
+
+// Load the .env file immediately
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +34,14 @@ builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(
     builder.Configuration.GetConnectionString("DefaultConnection")
     ).UseSnakeCaseNamingConvention());
 // Register custom services
+// Add AWS S3 Service
+var awsOptions = builder.Configuration.GetAWSOptions();
+awsOptions.Credentials = new Amazon.Runtime.BasicAWSCredentials(
+    builder.Configuration["AWS:AccessKey"],
+    builder.Configuration["AWS:SecretKey"]
+);
+builder.Services.AddDefaultAWSOptions(awsOptions);
+builder.Services.AddAWSService<IAmazonS3>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<FileStorageService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

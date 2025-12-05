@@ -79,7 +79,7 @@ export function getProfilePictureHtml(profilePictureUrl, size = 40)
     // If we have a URL, show the image
     if (profilePictureUrl)
     {
-        return `<img src="${BASE_URL}${profilePictureUrl}" class="profile-picture" style="width: ${size}px; height: ${size}px;">`
+        return `<img src="${profilePictureUrl}" class="profile-picture" style="width: ${size}px; height: ${size}px;">`
     }
     // Otherwise, show a placeholder
     else

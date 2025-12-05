@@ -7,3 +7,6 @@
 
 # Static files
 **/wwwroot/
+
+# Environment variables
+.env
